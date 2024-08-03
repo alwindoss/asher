@@ -1,0 +1,38 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+version: "3"
+
+vars:
+  APPLICATION_NAME: asher
+  BINARY_LOC: bin
+  GOBUILD: go build
+  GOTEST: go test
+  VERSION: 0.0.1
+
+tasks:
+  clean:
+    cmds:
+      - rm -rf {{.BINARY_LOC}}
+  test:
+    cmds:
+      - "{{.GOTEST}} -v ./..."
+  build:
+    cmds:
+      - "{{.GOBUILD}} -o ./{{.BINARY_LOC}}/ -v ./cmd/{{.APPLICATION_NAME}}/..."
+    sources:
+      - "**/*.go"
+    generates:
+      - "{{.BINARY_LOC}}/{{.APPLICATION_NAME}}"
+    # watch: true
+  run:
+    cmds:
+      - task: build
+      - ./{{.BINARY_LOC}}/{{.APPLICATION_NAME}}
+  docker-build:
+    cmds:
+      - CGO_ENABLED=0 GOOS=linux GOARCH=amd64 {{.GOBUILD}} -o ./{{.BINARY_LOC}}/ -v ./cmd/{{.APPLICATION_NAME}}/...
+  docker-package:
+    cmds:
+      - docker build -t alwindoss/{{.BINARY_NAME}}:{{.VERSION}} .
+  docker-publish:
+    cmds:
+      - docker push alwindoss/{{.BINARY_NAME}}:{{.VERSION}}
